@@ -1,0 +1,6 @@
+# Lambda function dependencies
+# Add any additional Python packages needed by your Lambda function here
+
+# No additional dependencies required for this basic example
+# If you need AWS SDK, boto3 is already available in Lambda runtime
+# boto3>=1.26.0
