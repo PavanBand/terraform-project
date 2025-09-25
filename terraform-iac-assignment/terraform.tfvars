@@ -18,5 +18,5 @@ lambda_handler        = "lambda_function.lambda_handler"
 
 # ECS Configuration
 ecs_cluster_name      = "iac-assignment-cluster"
-key_name              = "your-ec2-key-pair"
+key_name              = "default-aws-1"
 instance_type         = "t3.micro"
