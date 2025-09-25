@@ -1,7 +1,6 @@
 # Root module - Infrastructure as Code using Terraform
 # This configuration orchestrates VPC, Lambda, and ECS modules
 
-
 provider "aws" {
   region = var.aws_region
 
