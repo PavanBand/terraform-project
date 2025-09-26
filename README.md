@@ -1,73 +1,98 @@
-# Step 1: Go to your project directory
-cd ~/terraform-project/terraform-iac-assignment
+Step-by-Step: Deploy Terraform Project on AWS EC2
+1️⃣ Launch an EC2 instance
 
-# Step 2: Initialize Terraform (install providers and modules)
+Use Amazon Linux 2 AMI.
+
+Type: t2.micro or t3.micro.
+
+Key pair: default-aws-1 (or your own key).
+
+Security group: Allow SSH (22), HTTP (if needed), and any ports for your services.
+
+2️⃣ Connect to EC2 via SSH
+
+On your local machine:
+
+ssh -i "default-aws-1.pem" ec2-user@<EC2-Public-IP>
+
+
+Replace <EC2-Public-IP> with the public IP of your instance.
+
+3️⃣ Update EC2 and install required tools
+sudo yum update -y
+sudo yum install -y git unzip zip curl
+
+4️⃣ Install Terraform
+sudo yum install -y yum-utils
+sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+sudo yum -y install terraform
+terraform -v  # Verify installation
+
+5️⃣ Clone your GitHub repo
+cd ~
+git clone https://github.com/PavanBand/terraform-project.git
+cd terraform-project/terraform-iac-assignment
+
+6️⃣ Prepare Lambda ZIP file
+
+Go to the Lambda code folder and ensure the deployment package exists:
+
+cd lambda-code
+zip -r lambda_function.zip .
+
+
+If you already have lambda_function.zip, you can skip the zip command.
+
+7️⃣ Upload Lambda ZIP to S3
+
+Check terraform.tfvars for bucket name:
+
+aws s3 cp lambda_function.zip s3://iac-lambda-deployment-342593763660-20250925/lambda_function.zip
+
+
+Verify upload:
+
+aws s3 ls s3://iac-lambda-deployment-342593763660-20250925/
+
+8️⃣ Initialize Terraform
+
+Go back to your Terraform root:
+
+cd ~/terraform-project/terraform-iac-assignment
 terraform init
 
-# Step 3: Format Terraform files
-terraform fmt
+9️⃣ Plan Terraform
 
-# Step 4: Validate Terraform configuration
-terraform validate
+Check what Terraform will create:
 
-# Step 5: Create EC2 key pair (replace with your name)
-aws ec2 create-key-pair --key-name default-aws-1 --query 'KeyMaterial' --output text > default-aws-1.pem
-
-# Step 6: Set permissions for key pair
-chmod 400 default-aws-1.pem
-
-# Step 7: Edit terraform.tfvars with your custom values
-nano terraform.tfvars
-# - aws_region = "us-east-1"
-# - environment = "dev"
-# - lambda_s3_bucket = "pavan-iac-lambda-bucket-12345"
-# - key_name = "default-aws-1"
-
-# Step 8: Prepare Lambda deployment package
-cd lambda-code
-zip lambda_function.zip lambda_function.py
-cd ..
-
-# Step 9: Upload Lambda code to S3
-aws s3 cp lambda-code/lambda_function.zip s3://pavan-iac-lambda-bucket-12345/
-
-# Step 10: Check if Lambda code is uploaded
-aws s3 ls s3://pavan-iac-lambda-bucket-12345/
-
-# Step 11: Plan Terraform deployment
 terraform plan
 
-# Step 12: Apply Terraform configuration
-terraform apply
-# Enter 'yes' when prompted
 
-# Step 13: Verify ECS cluster and Lambda function creation
-# ECS
-aws ecs list-clusters --region us-east-1
-aws ecs describe-clusters --clusters iac-assignment-cluster --region us-east-1
+Ensure the output shows the resources that will be created.
 
-# Lambda
-aws lambda list-functions --region us-east-1
-aws lambda get-function --function-name iac-assignment-lambda --region us-east-1
+🔟 Apply Terraform
 
-# Step 14: Test Lambda function
-aws lambda invoke \
-  --function-name iac-assignment-lambda \
-  --payload '{"test": "Hello from Terraform!"}' \
-  response.json
-cat response.json
+Deploy all resources:
 
-# Step 15: Output resources from Terraform
-terraform output
+terraform apply -auto-approve
 
-# Step 16: After testing, destroy infrastructure (optional)
-terraform destroy
-# Enter 'yes' when prompted
 
-# Step 17: Push project to GitHub
-git init
-git add .
-git commit -m "Initial commit - Terraform IaC project"
-git branch -M main
-git remote add origin https://github.com/PavanBand/terraform-iac-assignment.git
-git push -u origin main
+Wait until all resources are created successfully.
+
+Check outputs for VPC, ECS, and Lambda info.
+
+1️⃣1️⃣ Verify in AWS Console
+
+Go to EC2 → check ECS instances.
+
+Go to ECS → cluster should be visible.
+
+Go to Lambda → function should exist.
+
+Go to VPC → subnets and IGW should exist.
+
+1️⃣2️⃣ Optional: Clean up
+
+If you ever want to destroy everything:
+
+terraform destroy -auto-approve
